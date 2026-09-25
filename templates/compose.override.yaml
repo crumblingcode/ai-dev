@@ -3,21 +3,24 @@
 # top of compose.yaml: list entries like `volumes` are appended (the ai-dev
 # and Claude config mounts stay), scalars like `working_dir` replace.
 #
+# ${HOME} is expanded by compose on the host, so it's the host user's home
+# (e.g. /home/you), not the container's /home/vscode.
+#
 # Recreate the container after editing (VS Code: "Rebuild Container", or
 # `podman compose ... up -d` again), since mounts are fixed at creation time.
 services:
   dev:
-    # Where `podman exec` shells (and so `claude`) start. Claude Code keys
-    # per-project memory and sessions on the directory it's launched in, so
-    # this picks which project's memory you get by default:
-    #   /workspaces/ff3bridge -> ff3bridge's memory
-    #   /workspaces/ai-dev    -> the dev container repo's own (compose.yaml default)
-    # You can always `cd` elsewhere before running claude.
-    working_dir: /workspaces/ff3bridge
+    # Where `podman exec` shells (and so `claude`) start, which picks the
+    # project whose memory/sessions you get by default. Use /workspaces/ai-dev
+    # for the dev container repo's own. You can always `cd` elsewhere.
+    working_dir: ${HOME}/git/ff3bridge
     volumes:
-      # Mount each host checkout under /workspaces/<name> next to ai-dev.
-      # ${HOME} is expanded by compose on the host, so it's the host user's
-      # home. The host path must already exist (podman won't create it).
-      # :z relabels for SELinux (Fedora host); use :z,ro for a read-only
-      # reference checkout.
-      - ${HOME}/git/ff3bridge:/workspaces/ff3bridge:z
+      # Mount each repo at the same absolute path it has on the host. Claude
+      # Code keys memory, sessions (--resume) and per-project .claude.json
+      # entries on that path, so host and container then share them. Cargo's
+      # target/ also stays valid on both sides.
+      # The host path must already exist (podman won't create it). :z
+      # relabels for SELinux (Fedora host); use :z,ro for a read-only
+      # reference checkout. Mount repos one by one rather than all of ~/git,
+      # since :z relabels the whole tree.
+      - ${HOME}/git/ff3bridge:${HOME}/git/ff3bridge:z

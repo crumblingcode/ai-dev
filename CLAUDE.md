@@ -15,11 +15,11 @@ per-machine compose override.
 .devcontainer/
   Dockerfile              image: base ubuntu + build tools, Node.js, Claude Code CLI, Rust
   compose.yaml            the container definition (single source of truth)
-  compose.override.yaml   per-machine mounts/working_dir (gitignored, created by init-host.sh)
+  compose.override.yaml   per-machine mounts/working_dir (gitignored, created empty by init-host.sh)
   devcontainer.json       VS Code side only: points at the compose service, lists extensions
   init-host.sh            host-side prep run before every start
 templates/
-  compose.override.yaml   example override: mount ~/git/ff3bridge, set working_dir
+  compose.override.yaml   example override: same-path mount of ~/git/ff3bridge, working_dir
 ```
 
 ## Starting the container
@@ -50,15 +50,27 @@ recreates the container.
 - Runs as `vscode` (uid/gid 1000, podman `keep-id` userns), so files in
   bind mounts are owned by the host user. Every bind mount uses `:z` for
   SELinux (Fedora host).
-- Claude Code config is the host's own: `~/.claude` and `~/.claude.json`
-  are bind-mounted to the default locations under `/home/vscode`, with no
-  `CLAUDE_CONFIG_DIR`. Host and container therefore share login, settings
-  and sessions. Per-project memory is keyed on the absolute project path,
-  so `/workspaces/ff3bridge` in the container and `~/git/ff3bridge` on the
-  host are separate projects to Claude.
+- Claude Code home is `~/.claude`, on both sides. The container sets
+  `CLAUDE_CONFIG_DIR=/home/vscode/.claude`, which moves `.claude.json` from
+  its default `~/.claude.json` into `~/.claude/.claude.json`. That way a
+  single directory bind mount of the host's `~/.claude` carries all state:
+  login, settings, sessions, per-project memory. The host install must
+  match. Once per host:
+  ```sh
+  mv ~/.claude.json ~/.claude/    # if it exists
+  echo 'export CLAUDE_CONFIG_DIR="$HOME/.claude"' >> ~/.bashrc
+  ```
+  Without that, the host keeps using `~/.claude.json` and the two sides
+  have separate login/project state (`init-host.sh` warns about this).
+- Project repos are mounted at the same absolute path as on the host
+  (`${HOME}/git/<repo>`, with `${HOME}` expanded on the host). Claude Code
+  keys memory, sessions and `.claude.json` project entries on that path, so
+  host and container share them. The container user/home (`vscode`,
+  `/home/vscode`) doesn't matter for this. What does break is shared config
+  that hard-codes the host home (e.g. `/home/you/...` in hook or MCP
+  commands in `settings.json`), so write those as `~/...` or `$HOME/...`.
 - `init-host.sh` must stay safe to re-run: it only creates what's missing
-  (`~/.claude/`, `~/.claude.json` as `{}`, an empty override) and never
-  overwrites.
+  (`~/.claude/`, an empty override) and never overwrites or moves files.
 - Anything per-machine (extra repos, `working_dir`) goes in the gitignored
   override, not `compose.yaml`. `templates/compose.override.yaml` is the
   documented starting point.

@@ -5,7 +5,7 @@
   // compose.override.yaml holds per-machine extra mounts (gitignored; see
   // templates/compose.override.yaml). initializeCommand runs on the host and
   // creates an empty one if missing (every listed file must exist), plus the
-  // host ~/.claude and ~/.claude.json that compose.yaml bind-mounts.
+  // host ~/.claude that compose.yaml bind-mounts.
   "initializeCommand": "sh .devcontainer/init-host.sh",
   "dockerComposeFile": ["compose.yaml", "compose.override.yaml"],
   "service": "dev",
