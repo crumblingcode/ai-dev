@@ -1,0 +1,34 @@
+{
+  "name": "ai-dev",
+  // Container definition lives in compose.yaml so it can also be started with
+  // `podman compose up`; this file only adds the VS Code side.
+  // compose.override.yaml holds per-machine extra mounts (gitignored; see
+  // templates/compose.override.yaml). initializeCommand runs on the host and
+  // creates an empty one if missing (every listed file must exist), plus the
+  // host ~/.claude and ~/.claude.json that compose.yaml bind-mounts.
+  "initializeCommand": "sh .devcontainer/init-host.sh",
+  "dockerComposeFile": ["compose.yaml", "compose.override.yaml"],
+  "service": "dev",
+  "workspaceFolder": "/workspaces/ai-dev",
+  "remoteUser": "vscode",
+  // Use compose's own command/UID handling so a VS Code-started container is
+  // the same as a compose-started one (no VS Code-built UID image, no
+  // injected entrypoint).
+  "overrideCommand": false,
+  "updateRemoteUserUID": false,
+  // Don't stop the container when VS Code closes — it may be shared with a
+  // compose/terminal session.
+  "shutdownAction": "none",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "Anthropic.claude-code",
+        "yzhang.markdown-all-in-one",
+        "ms-python.python",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}

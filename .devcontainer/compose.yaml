@@ -1,0 +1,38 @@
+# Single source of truth for the dev container. Usable either way:
+#   sh .devcontainer/init-host.sh && podman compose \
+#     -f .devcontainer/compose.yaml -f .devcontainer/compose.override.yaml up -d
+#                                            (then attach VS Code)
+#   VS Code "Reopen in Container"            (then `podman exec` in)
+# The fixed project name is what lets both sides find the same container:
+# VS Code looks it up by the com.docker.compose.project/service labels.
+# Both sides must pass the same -f files, or compose sees a config change and
+# recreates the container. Put extra per-machine mounts (other git repos,
+# etc.) in compose.override.yaml, not here; see
+# templates/compose.override.yaml.
+name: ai-dev
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: localhost/ai-dev-devcontainer:latest
+    container_name: ai-dev
+    hostname: ai-dev
+    init: true
+    command: sleep infinity
+    user: vscode
+    userns_mode: keep-id:uid=1000,gid=1000
+    environment:
+      HOME: /home/vscode
+    # Default cwd for `podman exec`; compose.override.yaml can point it at a
+    # mounted repo instead.
+    working_dir: /workspaces/ai-dev
+    volumes:
+      # :z relabels for SELinux (Fedora host) so the bind mount is writable.
+      - ..:/workspaces/ai-dev:z
+      # Same Claude Code config a normal host install uses (settings, login,
+      # sessions, per-project memory), at the default locations so no
+      # CLAUDE_CONFIG_DIR is needed. init-host.sh creates both if missing.
+      - ${HOME}/.claude:/home/vscode/.claude:z
+      - ${HOME}/.claude.json:/home/vscode/.claude.json:z
