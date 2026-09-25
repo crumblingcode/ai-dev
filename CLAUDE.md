@@ -55,13 +55,19 @@ recreates the container.
   its default `~/.claude.json` into `~/.claude/.claude.json`. That way a
   single directory bind mount of the host's `~/.claude` carries all state:
   login, settings, sessions, per-project memory. The host install must
-  match. Once per host:
+  match. Once per host, move `~/.claude.json` into `~/.claude/` (if it
+  exists) and set `CLAUDE_CONFIG_DIR` in your shell:
   ```sh
-  mv ~/.claude.json ~/.claude/    # if it exists
-  echo 'export CLAUDE_CONFIG_DIR="$HOME/.claude"' >> ~/.bashrc
+  set -Ux CLAUDE_CONFIG_DIR $HOME/.claude                        # fish (universal var)
+  echo 'export CLAUDE_CONFIG_DIR="$HOME/.claude"' >> ~/.bashrc   # bash
   ```
-  Without that, the host keeps using `~/.claude.json` and the two sides
-  have separate login/project state (`init-host.sh` warns about this).
+  Without that, the host claude doesn't find the moved file. It acts logged
+  out and creates a fresh `~/.claude.json`, so the two sides end up with
+  separate login/project state. `init-host.sh` warns about a stray
+  `~/.claude.json`. The shell variable only covers `claude` started from a
+  shell. VS Code's Claude extension on the host needs VS Code launched from
+  that shell (`code .`), or the variable set in its environment some other
+  way.
 - Project repos are mounted at the same absolute path as on the host
   (`${HOME}/git/<repo>`, with `${HOME}` expanded on the host). Claude Code
   keys memory, sessions and `.claude.json` project entries on that path, so
