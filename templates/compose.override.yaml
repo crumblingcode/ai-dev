@@ -11,9 +11,10 @@
 services:
   dev:
     # Where `podman exec` shells (and so `claude`) start, which picks the
-    # project whose memory/sessions you get by default. Use /workspaces/ai-dev
-    # for the dev container repo's own. You can always `cd` elsewhere.
-    working_dir: ${HOME}/git/ff3bridge
+    # project whose memory/sessions you get by default. Leave it out for the
+    # dev container repo's own (${HOME}/git/ai-dev). You can always `cd`
+    # elsewhere.
+    working_dir: ${HOME}/git/my-project
     volumes:
       # Mount each repo at the same absolute path it has on the host. Claude
       # Code keys memory, sessions (--resume) and per-project .claude.json
@@ -23,4 +24,5 @@ services:
       # relabels for SELinux (Fedora host); use :z,ro for a read-only
       # reference checkout. Mount repos one by one rather than all of ~/git,
       # since :z relabels the whole tree.
-      - ${HOME}/git/ff3bridge:${HOME}/git/ff3bridge:z
+      - ${HOME}/git/my-project:${HOME}/git/my-project:z
+      # - ${HOME}/git/other-repo:${HOME}/git/other-repo:z,ro

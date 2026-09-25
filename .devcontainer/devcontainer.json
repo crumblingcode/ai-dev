@@ -5,11 +5,12 @@
   // compose.override.yaml holds per-machine extra mounts (gitignored; see
   // templates/compose.override.yaml). initializeCommand runs on the host and
   // creates an empty one if missing (every listed file must exist), plus the
-  // host ~/.claude that compose.yaml bind-mounts.
+  // host ~/.claude and ~/.gitconfig that compose.yaml bind-mounts.
   "initializeCommand": "sh .devcontainer/init-host.sh",
   "dockerComposeFile": ["compose.yaml", "compose.override.yaml"],
   "service": "dev",
-  "workspaceFolder": "/workspaces/ai-dev",
+  // Must match the mount target in compose.yaml (the host path).
+  "workspaceFolder": "${localEnv:HOME}/git/ai-dev",
   "remoteUser": "vscode",
   // Use compose's own command/UID handling so a VS Code-started container is
   // the same as a compose-started one (no VS Code-built UID image, no

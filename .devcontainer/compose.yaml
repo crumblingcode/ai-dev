@@ -31,10 +31,17 @@ services:
       CLAUDE_CONFIG_DIR: /home/vscode/.claude
     # Default cwd for `podman exec`; compose.override.yaml can point it at a
     # mounted repo instead.
-    working_dir: /workspaces/ai-dev
+    working_dir: ${HOME}/git/ai-dev
     volumes:
+      # Same absolute path as on the host (${HOME} is the host's), like every
+      # other repo, so Claude Code state for this repo is shared too. Assumes
+      # the clone lives at ~/git/ai-dev; init-host.sh warns if not.
       # :z relabels for SELinux (Fedora host) so the bind mount is writable.
-      - ..:/workspaces/ai-dev:z
+      - ..:${HOME}/git/ai-dev:z
       # The host's Claude Code config (settings, login, sessions, per-project
       # memory, .claude.json). init-host.sh creates it if missing.
       - ${HOME}/.claude:/home/vscode/.claude:z
+      # The host's git identity/settings, read-only. The image's ~/.gitconfig
+      # [include]s it and stays writable, so VS Code can still add its
+      # credential helper there (and doesn't copy the host file over it).
+      - ${HOME}/.gitconfig:/home/vscode/.gitconfig.host:ro,z

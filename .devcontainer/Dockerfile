@@ -20,4 +20,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 ENV PATH="/home/vscode/.cargo/bin:${PATH}"
 
 # Pre-create the ~/.claude mount point so it is owned by vscode, not root.
-RUN mkdir -p /home/vscode/.claude
+# ~/.gitconfig pulls in the host's config (mounted read-only at
+# ~/.gitconfig.host) but is itself writable for container-local additions.
+RUN mkdir -p /home/vscode/.claude \
+    && printf '[include]\n\tpath = ~/.gitconfig.host\n' > /home/vscode/.gitconfig

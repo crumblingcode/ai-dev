@@ -5,9 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 `ai-dev`: a generic dev container for working on other repos with Claude
-Code. It contains no project code. Project repos (e.g. `ff3bridge`) live in
-their own git repos on the host and are bind-mounted in through a
-per-machine compose override.
+Code. It contains no project code. Project repos live in their own git
+repos on the host and are bind-mounted in through a per-machine compose
+override.
 
 ## Layout
 
@@ -19,7 +19,7 @@ per-machine compose override.
   devcontainer.json       VS Code side only: points at the compose service, lists extensions
   init-host.sh            host-side prep run before every start
 templates/
-  compose.override.yaml   example override: same-path mount of ~/git/ff3bridge, working_dir
+  compose.override.yaml   example override: same-path mount of ~/git/<repo>, working_dir
 ```
 
 ## Starting the container
@@ -68,15 +68,28 @@ recreates the container.
   shell. VS Code's Claude extension on the host needs VS Code launched from
   that shell (`code .`), or the variable set in its environment some other
   way.
-- Project repos are mounted at the same absolute path as on the host
-  (`${HOME}/git/<repo>`, with `${HOME}` expanded on the host). Claude Code
+- Repos, this one included, are mounted at the same absolute path as on
+  the host (`${HOME}/git/<repo>`, with `${HOME}` expanded on the host).
+  `ai-dev` itself is assumed to be cloned at `~/git/ai-dev`; `init-host.sh`
+  warns if it isn't, and `workspaceFolder` in `devcontainer.json` must match
+  the mount target. Claude Code
   keys memory, sessions and `.claude.json` project entries on that path, so
   host and container share them. The container user/home (`vscode`,
   `/home/vscode`) doesn't matter for this. What does break is shared config
   that hard-codes the host home (e.g. `/home/you/...` in hook or MCP
   commands in `settings.json`), so write those as `~/...` or `$HOME/...`.
+- The host's `~/.gitconfig` is mounted read-only at `~/.gitconfig.host`.
+  The image's own `~/.gitconfig` just `[include]`s it, so it stays writable:
+  VS Code adds its credential helper there, and since the file exists VS
+  Code doesn't copy the host one over it. Git identity works from plain
+  `podman exec` shells too, but push credentials and the SSH agent are
+  still only forwarded while VS Code is attached. Host config that
+  hard-codes host paths (e.g. `/home/you/.ssh/...` signing keys) won't
+  resolve in the container. A single-file mount pins the inode, so after
+  editing the host file (editors often replace it) recreate the container.
 - `init-host.sh` must stay safe to re-run: it only creates what's missing
-  (`~/.claude/`, an empty override) and never overwrites or moves files.
+  (`~/.claude/`, an empty `~/.gitconfig`, an empty override) and never
+  overwrites or moves files.
 - Anything per-machine (extra repos, `working_dir`) goes in the gitignored
   override, not `compose.yaml`. `templates/compose.override.yaml` is the
   documented starting point.
