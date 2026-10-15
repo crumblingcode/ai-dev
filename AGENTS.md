@@ -18,6 +18,7 @@ override.
   compose.override.yaml   per-machine mounts/working_dir (gitignored, created empty by init-host.sh)
   devcontainer.json       VS Code side only (soft-deprecated): points at the compose service, lists extensions
   init-host.sh            host-side prep run before every start
+  nvim/init.lua           Neovim config baked into the image
 templates/
   compose.override.yaml   example override: same-path mount of ~/git/<repo>, working_dir
 ```
@@ -51,8 +52,12 @@ sees a config change and recreates the container.
   plain compose builds would skip features: `build-essential`,
   `pkg-config`, fish (vscode's login shell), CLI conveniences (`ripgrep`,
   `fd`, `bat`, `fzf`, `jq`, `yq`, `tree`, `htop`, `shellcheck`, `unzip`,
-  `eza`, `zoxide`; no aliases or shell hooks), Node.js 22, Claude Code CLI,
-  Rust stable via `rustup` in `/home/vscode/.cargo`.
+  `eza`, `zoxide`; no aliases or shell hooks), Neovim (`EDITOR`/`VISUAL`),
+  Node.js 22, Claude Code CLI, Rust stable via `rustup` in
+  `/home/vscode/.cargo`.
+- Neovim's config is `.devcontainer/nvim/init.lua`, copied into
+  `~/.config/nvim/` at build time: plugin-free, leader = space,
+  `<leader>e` opens netrw. Edit it there and rebuild the image.
 - Claude Code is installed with the native installer as `vscode`
   (`~/.local/bin/claude`, versions in `~/.local/share/claude`), not
   `npm install -g` as root, so it can auto-update. Updates live in the

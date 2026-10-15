@@ -15,7 +15,7 @@ RUN DATE_BASELINE=2026-10-12 \
     export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
     && apt-get install -y --no-install-recommends build-essential pkg-config fish \
-        ripgrep fd-find bat fzf jq tree htop shellcheck unzip eza zoxide \
+        ripgrep fd-find bat fzf jq tree htop shellcheck unzip eza zoxide neovim \
     && ln -s /usr/bin/fdfind /usr/local/bin/fd \
     && ln -s /usr/bin/batcat /usr/local/bin/bat \
     && curl -fsSL -o /usr/local/bin/yq \
@@ -41,6 +41,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 RUN curl -fsSL https://claude.ai/install.sh | bash \
     && rm -rf /home/vscode/.claude.json /home/vscode/.claude
 ENV PATH="/home/vscode/.local/bin:/home/vscode/.cargo/bin:${PATH}"
+
+# Neovim is the editor (git commit messages etc.). Its config is baked in
+# from nvim/init.lua: plugin-free, leader = space, <leader>e opens netrw.
+COPY --chown=vscode:vscode nvim/init.lua /home/vscode/.config/nvim/init.lua
+ENV EDITOR=nvim VISUAL=nvim
 
 # Pre-create the ~/.claude mount point so it is owned by vscode, not root.
 # ~/.gitconfig pulls in the host's config (mounted read-only at
