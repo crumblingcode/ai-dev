@@ -2,7 +2,7 @@
 #   sh .devcontainer/init-host.sh && podman compose \
 #     -f .devcontainer/compose.yaml -f .devcontainer/compose.override.yaml up -d
 #                                            (then attach VS Code)
-#   VS Code "Reopen in Container"            (then `podman exec` in)
+#   VS Code "Reopen in Container"            (then `podman exec -it ai-dev fish`)
 # The fixed project name is what lets both sides find the same container:
 # VS Code looks it up by the com.docker.compose.project/service labels.
 # Both sides must pass the same -f files, or compose sees a config change and

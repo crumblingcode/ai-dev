@@ -16,7 +16,7 @@ override.
   Dockerfile              image: base ubuntu + build tools, Node.js, Claude Code CLI, Rust
   compose.yaml            the container definition (single source of truth)
   compose.override.yaml   per-machine mounts/working_dir (gitignored, created empty by init-host.sh)
-  devcontainer.json       VS Code side only: points at the compose service, lists extensions
+  devcontainer.json       VS Code side only (soft-deprecated): points at the compose service, lists extensions
   init-host.sh            host-side prep run before every start
 templates/
   compose.override.yaml   example override: same-path mount of ~/git/<repo>, working_dir
@@ -24,18 +24,22 @@ templates/
 
 ## Starting the container
 
-Either way attaches to the same container (fixed compose project name
-`ai-dev`, service `dev`, container name `ai-dev`):
+Start it with `podman compose` (fixed compose project name `ai-dev`,
+service `dev`, container name `ai-dev`). This is the supported way:
 
 ```sh
 sh .devcontainer/init-host.sh && podman compose \
   -f .devcontainer/compose.yaml -f .devcontainer/compose.override.yaml up -d
-podman exec -it ai-dev bash
+podman exec -it ai-dev fish   # or bash
 ```
 
-or VS Code's "Reopen in Container" (`initializeCommand` runs `init-host.sh`).
-Both must pass the same compose files, or compose sees a config change and
-recreates the container.
+The VS Code dev container route ("Reopen in Container", driven by
+`devcontainer.json`) is soft-deprecated in favor of the above. It still
+works and attaches to the same container (`initializeCommand` runs
+`init-host.sh`), but new work should target the compose flow: don't add
+anything that only works through `devcontainer.json`, and when the two
+conflict, compose wins. Both must pass the same compose files, or compose
+sees a config change and recreates the container.
 
 ## Things to know before changing this
 
@@ -45,8 +49,17 @@ recreates the container.
   stopped when VS Code closes.
 - Tooling is baked into the Dockerfile, not devcontainer features, because
   plain compose builds would skip features: `build-essential`,
-  `pkg-config`, Node.js 22, Claude Code CLI, Rust stable via `rustup` in
-  `/home/vscode/.cargo`.
+  `pkg-config`, fish (vscode's login shell), Node.js 22, Claude Code CLI,
+  Rust stable via `rustup` in `/home/vscode/.cargo`.
+- Claude Code is installed with the native installer as `vscode`
+  (`~/.local/bin/claude`, versions in `~/.local/share/claude`), not
+  `npm install -g` as root, so it can auto-update. Updates live in the
+  container's writable layer: a recreated container starts from the image's
+  version and updates again. Bump `DATE_BASELINE` in the Dockerfile to bust
+  the build cache and bake in current versions of everything.
+- Tool paths go in the Dockerfile's `ENV PATH`, not shell rc files, so
+  bash, fish and non-interactive `podman exec` all see them. No host fish
+  config is mounted; the container's fish starts with defaults.
 - Runs as `vscode` (uid/gid 1000, podman `keep-id` userns), so files in
   bind mounts are owned by the host user. Every bind mount uses `:z` for
   SELinux (Fedora host).
