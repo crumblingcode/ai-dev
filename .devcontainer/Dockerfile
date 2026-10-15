@@ -6,11 +6,21 @@ FROM mcr.microsoft.com/devcontainers/base:ubuntu
 # fish is vscode's login shell, so VS Code terminals open in it; `podman exec`
 # names its shell explicitly (fish or bash). PATH and the other settings come
 # from ENV/compose environment, so both shells see the same tools.
+# The CLI conveniences are for interactive use and for Claude Code itself.
+# Ubuntu ships fd and bat as fdfind/batcat (name clashes); symlink the
+# upstream names into /usr/local/bin. Ubuntu's `yq` package is the Python jq
+# wrapper, not mikefarah's Go yq, so the latter comes from its GitHub release.
 ARG NODE_MAJOR=22
 RUN DATE_BASELINE=2026-10-12 \
     export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
     && apt-get install -y --no-install-recommends build-essential pkg-config fish \
+        ripgrep fd-find bat fzf jq tree htop shellcheck unzip eza zoxide \
+    && ln -s /usr/bin/fdfind /usr/local/bin/fd \
+    && ln -s /usr/bin/batcat /usr/local/bin/bat \
+    && curl -fsSL -o /usr/local/bin/yq \
+        "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_$(dpkg --print-architecture)" \
+    && chmod +x /usr/local/bin/yq \
     && curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/* \

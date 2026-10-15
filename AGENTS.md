@@ -49,7 +49,9 @@ sees a config change and recreates the container.
   stopped when VS Code closes.
 - Tooling is baked into the Dockerfile, not devcontainer features, because
   plain compose builds would skip features: `build-essential`,
-  `pkg-config`, fish (vscode's login shell), Node.js 22, Claude Code CLI,
+  `pkg-config`, fish (vscode's login shell), CLI conveniences (`ripgrep`,
+  `fd`, `bat`, `fzf`, `jq`, `yq`, `tree`, `htop`, `shellcheck`, `unzip`,
+  `eza`, `zoxide`; no aliases or shell hooks), Node.js 22, Claude Code CLI,
   Rust stable via `rustup` in `/home/vscode/.cargo`.
 - Claude Code is installed with the native installer as `vscode`
   (`~/.local/bin/claude`, versions in `~/.local/share/claude`), not
