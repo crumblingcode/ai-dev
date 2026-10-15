@@ -54,7 +54,7 @@ sees a config change and recreates the container.
   `fd`, `bat`, `fzf`, `jq`, `yq`, `tree`, `htop`, `shellcheck`, `unzip`,
   `eza`, `zoxide`; no aliases or shell hooks), Neovim (`EDITOR`/`VISUAL`),
   Node.js 22, Claude Code CLI, Rust stable via `rustup` in
-  `/home/vscode/.cargo`.
+  `/home/vscode/.cargo`, `cargo-deny` (`cargo install --locked`).
 - Neovim's config is `.devcontainer/nvim/init.lua`, copied into
   `~/.config/nvim/` at build time: plugin-free, leader = space,
   `<leader>e` opens netrw. Edit it there and rebuild the image.

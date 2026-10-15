@@ -28,9 +28,13 @@ RUN DATE_BASELINE=2026-10-12 \
 
 USER vscode
 
-# Rust toolchain baked into the image so it survives container rebuilds.
+# Rust toolchain baked into the image so it survives container rebuilds,
+# plus cargo-deny (`cargo deny check advisories` in project CI). It's built
+# from source, which takes a few minutes but needs no release-asset names.
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-    | sh -s -- -y --profile default --default-toolchain stable
+    | sh -s -- -y --profile default --default-toolchain stable \
+    && /home/vscode/.cargo/bin/cargo install --locked cargo-deny \
+    && rm -rf /home/vscode/.cargo/registry /home/vscode/.cargo/git
 
 # Claude Code via the native installer, as vscode, so everything lives under
 # ~/.local and is user-writable: that's what lets it auto-update (a root-owned
