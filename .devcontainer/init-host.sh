@@ -26,6 +26,9 @@ fi
 # also reads ~/.config/git/config, which isn't mounted).
 [ -e "$HOME/.gitconfig" ] || : > "$HOME/.gitconfig"
 
+# The container's own ~/.ssh (not the host's). ssh wants it private.
+[ -d "$HOME/.config/ai-dev/ssh" ] || mkdir -p -m 700 "$HOME/.config/ai-dev/ssh"
+
 # compose.yaml mounts this repo at ~/git/ai-dev in the container. If the clone
 # lives elsewhere it still works, but Claude Code state for it isn't shared.
 repo=$(cd "$dir/.." && pwd -P)

@@ -102,8 +102,15 @@ sees a config change and recreates the container.
   hard-codes host paths (e.g. `/home/you/.ssh/...` signing keys) won't
   resolve in the container. A single-file mount pins the inode, so after
   editing the host file (editors often replace it) recreate the container.
+- The container's `~/.ssh` is the host's `~/.config/ai-dev/ssh`, a
+  separate directory, not the host's `~/.ssh`. It holds keys generated in
+  the container for specific targets (e.g. a test VM) plus its
+  `known_hosts`, so they survive rebuilds without exposing the host's own
+  keys to the container. Authorize those keys only where the container
+  should have access.
 - `init-host.sh` must stay safe to re-run: it only creates what's missing
-  (`~/.claude/`, an empty `~/.gitconfig`, an empty override) and never
+  (`~/.claude/`, `~/.config/ai-dev/ssh/`, an empty `~/.gitconfig`, an empty
+  override) and never
   overwrites or moves files.
 - Anything per-machine (extra repos, `working_dir`) goes in the gitignored
   override, not `compose.yaml`. `templates/compose.override.yaml` is the
