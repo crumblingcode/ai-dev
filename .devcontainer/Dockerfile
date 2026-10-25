@@ -10,6 +10,8 @@ FROM mcr.microsoft.com/devcontainers/base:ubuntu
 # Ubuntu ships fd and bat as fdfind/batcat (name clashes); symlink the
 # upstream names into /usr/local/bin. Ubuntu's `yq` package is the Python jq
 # wrapper, not mikefarah's Go yq, so the latter comes from its GitHub release.
+# gh comes from GitHub's own apt repo (Ubuntu's lags); the nodesource setup
+# script runs apt-get update, which picks up both repos.
 ARG NODE_MAJOR=22
 
 # The container user is named after the host user (compose passes ${USER}).
@@ -34,8 +36,14 @@ RUN DATE_BASELINE=2026-10-12 \
     && curl -fsSL -o /usr/local/bin/yq \
         "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_$(dpkg --print-architecture)" \
     && chmod +x /usr/local/bin/yq \
+    && install -d -m 755 /etc/apt/keyrings \
+    && curl -fsSL -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+        https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    && chmod 644 /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+        > /etc/apt/sources.list.d/github-cli.list \
     && curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
+    && apt-get install -y --no-install-recommends nodejs gh \
     && rm -rf /var/lib/apt/lists/* \
     && chsh -s /usr/bin/fish "$USERNAME"
 

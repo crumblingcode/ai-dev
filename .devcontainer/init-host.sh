@@ -29,6 +29,9 @@ fi
 # The container's own ~/.ssh (not the host's). ssh wants it private.
 [ -d "$HOME/.config/ai-dev/ssh" ] || mkdir -p -m 700 "$HOME/.config/ai-dev/ssh"
 
+# The container's own gh config (not the host's); it holds a token.
+[ -d "$HOME/.config/ai-dev/gh" ] || mkdir -p -m 700 "$HOME/.config/ai-dev/gh"
+
 # compose.yaml mounts this repo at ~/git/ai-dev in the container. If the clone
 # lives elsewhere it still works, but Claude Code state for it isn't shared.
 repo=$(cd "$dir/.." && pwd -P)

@@ -52,9 +52,9 @@ sees a config change and recreates the container.
   plain compose builds would skip features: `build-essential`,
   `pkg-config`, fish (the user's login shell), CLI conveniences (`ripgrep`,
   `fd`, `bat`, `fzf`, `jq`, `yq`, `tree`, `htop`, `shellcheck`, `unzip`,
-  `eza`, `zoxide`; no aliases or shell hooks), Neovim (`EDITOR`/`VISUAL`),
-  Node.js 22, Claude Code CLI, Rust stable via `rustup` in
-  `~/.cargo`, `cargo-deny` (`cargo install --locked`).
+  `eza`, `zoxide`; no aliases or shell hooks), `gh`, Neovim
+  (`EDITOR`/`VISUAL`), Node.js 22, Claude Code CLI, Rust stable via
+  `rustup` in `~/.cargo`, `cargo-deny` (`cargo install --locked`).
 - Neovim's config is `.devcontainer/nvim/init.lua`, copied into
   `~/.config/nvim/` at build time: plugin-free, leader = space,
   `<leader>e` opens netrw. Edit it there and rebuild the image.
@@ -116,10 +116,17 @@ sees a config change and recreates the container.
   `known_hosts`, so they survive rebuilds without exposing the host's own
   keys to the container. Authorize those keys only where the container
   should have access.
+- The container's `~/.config/gh` is the host's `~/.config/ai-dev/gh`, for
+  the same reason: its own `gh` login, not the host's. It's meant for a
+  fine-grained token with read-only permissions (Contents, Metadata, Pull
+  requests, Issues, Actions) on selected repos, with an expiry. Log in once
+  in the container with `gh auth login --with-token`; with no keyring
+  there, gh keeps the token in plaintext in `hosts.yml`, readable by
+  anything running in the container.
 - `init-host.sh` must stay safe to re-run: it only creates what's missing
-  (`~/.claude/`, `~/.config/ai-dev/ssh/`, an empty `~/.gitconfig`, an empty
-  override) and never
-  overwrites or moves files.
+  (`~/.claude/`, `~/.config/ai-dev/ssh/`, `~/.config/ai-dev/gh/`, an
+  empty `~/.gitconfig`, an empty override) and never overwrites or moves
+  files.
 - Anything per-machine (extra repos, `working_dir`) goes in the gitignored
   override, not `compose.yaml`. `templates/compose.override.yaml` is the
   documented starting point.

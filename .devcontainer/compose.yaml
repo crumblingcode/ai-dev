@@ -52,3 +52,7 @@ services:
       # Deliberately not the host's ~/.ssh: the container only gets keys made
       # for it. init-host.sh creates it if missing.
       - ${HOME}/.config/ai-dev/ssh:/home/${USER}/.ssh:z
+      # The container's own gh login (hosts.yml), kept across rebuilds. Meant
+      # for a read-only fine-grained token, not the host's gh login.
+      # init-host.sh creates it if missing.
+      - ${HOME}/.config/ai-dev/gh:/home/${USER}/.config/gh:z
