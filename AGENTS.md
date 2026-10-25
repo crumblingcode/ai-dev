@@ -118,8 +118,10 @@ sees a config change and recreates the container.
   should have access.
 - The container's `~/.config/gh` is the host's `~/.config/ai-dev/gh`, for
   the same reason: its own `gh` login, not the host's. It's meant for a
-  fine-grained token with read-only permissions (Contents, Metadata, Pull
-  requests, Issues, Actions) on selected repos, with an expiry. Log in once
+  fine-grained token on selected repos, with an expiry: read-only
+  Contents, Metadata, Pull requests and Actions, plus read/write Issues so
+  Claude can file and comment on issues. Never Contents write (it allows
+  pushing and merging) or Workflows. Log in once
   in the container with `gh auth login --with-token`; with no keyring
   there, gh keeps the token in plaintext in `hosts.yml`, readable by
   anything running in the container.
