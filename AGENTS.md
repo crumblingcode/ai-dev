@@ -50,15 +50,15 @@ sees a config change and recreates the container.
   stopped when VS Code closes.
 - Tooling is baked into the Dockerfile, not devcontainer features, because
   plain compose builds would skip features: `build-essential`,
-  `pkg-config`, fish (vscode's login shell), CLI conveniences (`ripgrep`,
+  `pkg-config`, fish (the user's login shell), CLI conveniences (`ripgrep`,
   `fd`, `bat`, `fzf`, `jq`, `yq`, `tree`, `htop`, `shellcheck`, `unzip`,
   `eza`, `zoxide`; no aliases or shell hooks), Neovim (`EDITOR`/`VISUAL`),
   Node.js 22, Claude Code CLI, Rust stable via `rustup` in
-  `/home/vscode/.cargo`, `cargo-deny` (`cargo install --locked`).
+  `~/.cargo`, `cargo-deny` (`cargo install --locked`).
 - Neovim's config is `.devcontainer/nvim/init.lua`, copied into
   `~/.config/nvim/` at build time: plugin-free, leader = space,
   `<leader>e` opens netrw. Edit it there and rebuild the image.
-- Claude Code is installed with the native installer as `vscode`
+- Claude Code is installed with the native installer as the container user
   (`~/.local/bin/claude`, versions in `~/.local/share/claude`), not
   `npm install -g` as root, so it can auto-update. Updates live in the
   container's writable layer: a recreated container starts from the image's
@@ -67,11 +67,14 @@ sees a config change and recreates the container.
 - Tool paths go in the Dockerfile's `ENV PATH`, not shell rc files, so
   bash, fish and non-interactive `podman exec` all see them. No host fish
   config is mounted; the container's fish starts with defaults.
-- Runs as `vscode` (uid/gid 1000, podman `keep-id` userns), so files in
-  bind mounts are owned by the host user. Every bind mount uses `:z` for
+- Runs as a user named after the host's `$USER` (compose passes it as the
+  `USERNAME` build arg, and `devcontainer.json` uses `${localEnv:USER}`;
+  the Dockerfile renames the base image's `vscode`), with uid/gid 1000 and
+  podman `keep-id` userns, so files in bind mounts are owned by the host
+  user. Home is `/home/$USER`. Changing `$USER` means a rebuild. Every bind mount uses `:z` for
   SELinux (Fedora host).
 - Claude Code home is `~/.claude`, on both sides. The container sets
-  `CLAUDE_CONFIG_DIR=/home/vscode/.claude`, which moves `.claude.json` from
+  `CLAUDE_CONFIG_DIR=/home/$USER/.claude`, which moves `.claude.json` from
   its default `~/.claude.json` into `~/.claude/.claude.json`. That way a
   single directory bind mount of the host's `~/.claude` carries all state:
   login, settings, sessions, per-project memory. The host install must
@@ -94,8 +97,8 @@ sees a config change and recreates the container.
   warns if it isn't, and `workspaceFolder` in `devcontainer.json` must match
   the mount target. Claude Code
   keys memory, sessions and `.claude.json` project entries on that path, so
-  host and container share them. The container user/home (`vscode`,
-  `/home/vscode`) doesn't matter for this. What does break is shared config
+  host and container share them. The container user/home (`$USER`,
+  `/home/$USER`) doesn't matter for this. What does break is shared config
   that hard-codes the host home (e.g. `/home/you/...` in hook or MCP
   commands in `settings.json`), so write those as `~/...` or `$HOME/...`.
 - The host's `~/.gitconfig` is mounted read-only at `~/.gitconfig.host`.

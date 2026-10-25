@@ -4,7 +4,8 @@
 # and Claude config mounts stay), scalars like `working_dir` replace.
 #
 # ${HOME} is expanded by compose on the host, so it's the host user's home
-# (e.g. /home/you), not the container's /home/vscode.
+# (e.g. /home/you). The container's home is /home/${USER}, which is usually
+# the same path.
 #
 # Recreate the container after editing (VS Code: "Rebuild Container", or
 # `podman compose ... up -d` again), since mounts are fixed at creation time.

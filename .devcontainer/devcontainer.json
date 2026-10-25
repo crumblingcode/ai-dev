@@ -11,7 +11,7 @@
   "service": "dev",
   // Must match the mount target in compose.yaml (the host path).
   "workspaceFolder": "${localEnv:HOME}/git/ai-dev",
-  "remoteUser": "vscode",
+  "remoteUser": "${localEnv:USER}",
   // Use compose's own command/UID handling so a VS Code-started container is
   // the same as a compose-started one (no VS Code-built UID image, no
   // injected entrypoint).

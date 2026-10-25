@@ -16,19 +16,22 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # The container user gets the host user's name; see the Dockerfile.
+      args:
+        USERNAME: ${USER}
     image: localhost/ai-dev-devcontainer:latest
     container_name: ai-dev
     hostname: ai-dev
     init: true
     command: sleep infinity
-    user: vscode
+    user: ${USER}
     userns_mode: keep-id:uid=1000,gid=1000
     environment:
-      HOME: /home/vscode
+      HOME: /home/${USER}
       # Keep .claude.json inside ~/.claude (default is ~/.claude.json) so one
       # directory mount carries all Claude Code state. Set the same on the
       # host: export CLAUDE_CONFIG_DIR="$HOME/.claude"
-      CLAUDE_CONFIG_DIR: /home/vscode/.claude
+      CLAUDE_CONFIG_DIR: /home/${USER}/.claude
     # Default cwd for `podman exec`; compose.override.yaml can point it at a
     # mounted repo instead.
     working_dir: ${HOME}/git/ai-dev
@@ -40,12 +43,12 @@ services:
       - ..:${HOME}/git/ai-dev:z
       # The host's Claude Code config (settings, login, sessions, per-project
       # memory, .claude.json). init-host.sh creates it if missing.
-      - ${HOME}/.claude:/home/vscode/.claude:z
+      - ${HOME}/.claude:/home/${USER}/.claude:z
       # The host's git identity/settings, read-only. The image's ~/.gitconfig
       # [include]s it and stays writable, so VS Code can still add its
       # credential helper there (and doesn't copy the host file over it).
-      - ${HOME}/.gitconfig:/home/vscode/.gitconfig.host:ro,z
+      - ${HOME}/.gitconfig:/home/${USER}/.gitconfig.host:ro,z
       # The container's own SSH keys and known_hosts, kept across rebuilds.
       # Deliberately not the host's ~/.ssh: the container only gets keys made
       # for it. init-host.sh creates it if missing.
-      - ${HOME}/.config/ai-dev/ssh:/home/vscode/.ssh:z
+      - ${HOME}/.config/ai-dev/ssh:/home/${USER}/.ssh:z
